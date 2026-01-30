@@ -1,0 +1,41 @@
+# Deep Learning
+torch
+torch-geometric
+torch-cluster
+torch-scatter
+torch-sparse
+
+# Science & Math Stack
+numpy
+scipy
+pandas
+scikit-learn
+matplotlib
+seaborn
+statsmodels
+networkx
+numba
+joblib
+
+# Supporting Libraries
+tqdm
+requests
+jinja2
+markupsafe
+cffi
+cryptography
+colorama
+
+# Bio/ML specific
+anndata
+biopython
+biotite
+fair-esm
+scanpy
+umap-learn
+igraph
+louvain
+pynndescent
+session-info
+rich
+clize

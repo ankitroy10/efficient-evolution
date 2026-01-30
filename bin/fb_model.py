@@ -3,18 +3,27 @@ from esm import Alphabet, FastaBatchedDataset, ProteinBertModel, pretrained
 import numpy as np
 import warnings
 
+
+def get_device():
+    if torch.cuda.is_available():
+        return torch.device('cuda')
+    elif torch.backends.mps.is_available():
+        return torch.device('mps')
+    return torch.device('cpu')
+
+
 class FBModel(object):
     def __init__(self, name, repr_layer=[-1]):
         self.name_ = name
         self.repr_layer_ = repr_layer
+        self.device_ = get_device()
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', UserWarning)
             model, alphabet = pretrained.load_model_and_alphabet(name)
 
         model.eval()
-        if torch.cuda.is_available():
-            model = model.cuda()
+        model = model.to(self.device_)
         self.model_ = model
         self.alphabet_ = alphabet
         self.unk_idx_ = alphabet.tok_to_idx['<unk>']
@@ -50,8 +59,7 @@ class FBModel(object):
     
             with torch.no_grad():
                 for batch_idx, (labels, strs, toks) in enumerate(data_loader):
-                    if torch.cuda.is_available():
-                        toks = toks.to(device='cuda', non_blocking=True)
+                    toks = toks.to(device=self.device_, non_blocking=True)
                     out = self.model_(
                         toks,
                         repr_layers=self.repr_layers_,
@@ -95,8 +103,7 @@ class FBModel(object):
                 for batch_idx, (labels, strs, toks) in enumerate(data_loader):
                     if isinstance(labels[0], list):
                         labels = labels[0]
-                    if torch.cuda.is_available():
-                        toks = toks.to(device='cuda', non_blocking=True)
+                    toks = toks.to(device=self.device_, non_blocking=True)
                     out = self.model_(
                         toks,
                         repr_layers=self.repr_layers_,
@@ -141,9 +148,7 @@ class FBModel(object):
 
     def decode(self, embedding):
         with torch.no_grad():
-            embedding = torch.from_numpy(embedding)
-            if torch.cuda.is_available():
-                embedding = embedding.to(device='cuda', non_blocking=True)
+            embedding = torch.from_numpy(embedding).to(device=self.device_)
             logits = self.model_.lm_head(embedding)
             logits = logits.to(device='cpu').numpy()
         return logits
